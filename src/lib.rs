@@ -29,7 +29,7 @@ impl Repository {
     }
 
     ///Clone a remote git repository locally
-    pub fn clone<P: AsRef<Path>>(url: GitUrl, p: P) -> Repository {
+    pub fn clone<P: AsRef<Path>>(url: GitUrl, p: P) -> Result<Repository, error::GitError> {
         let p = p.as_ref();
 
         Command::new("git")
@@ -39,8 +39,8 @@ impl Repository {
             .output()
             .expect("failed to execute process");
 
-        Repository {
+        Ok(Repository {
             location: PathBuf::from(p)
-        }
+        })
     }
 }

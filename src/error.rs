@@ -2,7 +2,7 @@ use std::fmt::{self, Display, Formatter};
 use std::error::Error;
 
 #[derive(Debug)]
-struct GitError {
+pub struct GitError {
     message: String
 }
 
