@@ -1,5 +1,5 @@
 [package]
-name = "rusty-git"
+name = "rustygit"
 version = "0.1.0"
 authors = ["Keir Lawson <keirlawson@gmail.com>"]
 edition = "2018"
