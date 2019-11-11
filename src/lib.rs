@@ -30,6 +30,7 @@ impl Repository {
 
     ///Clone a remote git repository locally
     pub fn clone<P: AsRef<Path>>(url: GitUrl, p: P) -> Result<Repository, GitError> {
+        //FIXME what to do if directory exists?
         let p = p.as_ref();
 
         Command::new("git")
