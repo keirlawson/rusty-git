@@ -1,14 +1,12 @@
-use std::fmt::{self, Display, Formatter};
 use std::error::Error;
+use std::fmt::{self, Display, Formatter};
 
 #[derive(Debug)]
 pub struct GitError {
-    message: String
+    pub message: String,
 }
 
-impl Error for GitError {
-
-}
+impl Error for GitError {}
 
 impl Display for GitError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
