@@ -30,7 +30,6 @@ impl Repository {
 
     ///Clone a remote git repository locally
     pub fn clone<P: AsRef<Path>>(url: GitUrl, p: P) -> Result<Repository, GitError> {
-        //FIXME what to do if directory exists?
         let p = p.as_ref();
 
         Command::new("git")
@@ -54,5 +53,28 @@ impl Repository {
                     })
                 }
             })
+    }
+
+    //Create and checkout a new local branch
+    pub fn create_local_branch(&self, branch_name: &str) -> Result<(), GitError> {
+        Command::new("git")
+        .arg("checkout")
+        .arg("-b")
+        .arg(branch_name)
+        .output()
+        .map_err(|_| GitError {
+            message: String::from("unable to execute git process"),
+        })
+        .and_then(|output| {
+            if output.status.success() {
+                Ok(())
+            } else {
+                let message =
+                    str::from_utf8(&output.stderr).unwrap_or_else(|_| "unable to decode error");
+                Err(GitError {
+                    message: String::from(message),
+                })
+            }
+        })
     }
 }
