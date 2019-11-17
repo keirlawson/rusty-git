@@ -43,19 +43,24 @@ impl Repository {
         })
     }
 
-    //Create and checkout a new local branch
+    ///Create and checkout a new local branch
     pub fn create_local_branch(&self, branch_name: &str) -> Result<(), GitError> {
         execute_git(&self.location, &["checkout", "-b", branch_name])
     }
 
-    //Checkout the specified branch
+    ///Checkout the specified branch
     pub fn switch_branch(&self, branch_name: &str) -> Result<(), GitError> {
         execute_git(&self.location, &["checkout", branch_name])
     }
 
-    //Commit all staged files
+    ///Commit all staged files
     pub fn commit_all(&self) -> Result<(), GitError> {
         execute_git(&self.location, &["commit", "-a"])
+    }
+
+    ///Push the curent branch to its associated remote
+    pub fn push(&self) -> Result<(), GitError> {
+        execute_git(&self.location, &["push"])
     }
 }
 
