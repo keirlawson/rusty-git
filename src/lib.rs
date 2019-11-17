@@ -1,9 +1,9 @@
 use error::GitError;
+use std::env;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::str;
-use std::env;
+use std::str::{self, FromStr};
 
 mod error;
 
@@ -11,29 +11,28 @@ pub struct GitUrl {
     value: String,
 }
 
-impl GitUrl {
-    //FIXME user FromStr
-    pub fn new(value: String) -> Result<GitUrl, ()> {
-        if is_valid_reference_name(&value) {
-            Ok(GitUrl { value })
-        } else {
-            Err(())
-        }
+impl FromStr for GitUrl {
+    type Err = ();
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        Ok(GitUrl { value: String::from(value) })
     }
 }
 
-//FIXME expand this
+const INVALID_REFERENCE_CHARS: [char; 5] = [' ', '~', '^', ':', '\\'];
+const INVALID_REFERENCE_START: &str = "-";
+const INVALID_REFERENCE_END: &str = ".";
+
 fn is_valid_reference_name(name: &str) -> bool {
-
-    //They cannot have ASCII control characters (i.e. bytes whose values are lower than \040, or \177 DEL), space, tilde ~, caret ^, or colon : anywhere. 
-    ! name.starts_with("-") &&
-    ! name.ends_with(".") &&
-    ! name.contains("\\") &&
-    ! name.contains("/.") &&
-    ! name.contains("@{") &&
-    ! name.contains("..") &&
-    name != "@"
-
+    !name.starts_with(INVALID_REFERENCE_START)
+        && !name.ends_with(INVALID_REFERENCE_END)
+        && name.chars().all(|c| {
+            !c.is_ascii_control() && INVALID_REFERENCE_CHARS.iter().all(|invalid| &c != invalid)
+        })
+        && !name.contains("/.")
+        && !name.contains("@{")
+        && !name.contains("..")
+        && name != "@"
 }
 
 pub struct Repository {
@@ -54,7 +53,7 @@ impl Repository {
         let p = p.as_ref();
 
         let cwd = env::current_dir().map_err(|_| GitError {
-            message: String::from("Unable to access current working directory")
+            message: String::from("Unable to access current working directory"),
         })?;
         execute_git(cwd, &["clone", url.value.as_str(), p.to_str().unwrap()]).map(|_| Repository {
             location: PathBuf::from(p),
@@ -83,29 +82,26 @@ impl Repository {
 }
 
 fn execute_git<I, S, P>(p: P, args: I) -> Result<(), GitError>
-    where
-        I: IntoIterator<Item = S>,
-        S: AsRef<OsStr>,
-        P: AsRef<Path>
-    {
-        let output = Command::new("git")
-            .current_dir(p)
-            .args(args)
-            .output();
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<OsStr>,
+    P: AsRef<Path>,
+{
+    let output = Command::new("git").current_dir(p).args(args).output();
 
-        output
-            .map_err(|_| GitError {
-                message: String::from("unable to execute git process"),
-            })
-            .and_then(|output| {
-                if output.status.success() {
-                    Ok(())
-                } else {
-                    let message =
-                        str::from_utf8(&output.stderr).unwrap_or_else(|_| "unable to decode error");
-                    Err(GitError {
-                        message: String::from(message),
-                    })
-                }
-            })
-    }
+    output
+        .map_err(|_| GitError {
+            message: String::from("unable to execute git process"),
+        })
+        .and_then(|output| {
+            if output.status.success() {
+                Ok(())
+            } else {
+                let message =
+                    str::from_utf8(&output.stderr).unwrap_or_else(|_| "unable to decode error");
+                Err(GitError {
+                    message: String::from(message),
+                })
+            }
+        })
+}
