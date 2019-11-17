@@ -61,6 +61,12 @@ impl Repository {
         self.execute_git(&["checkout", "-b", branch_name])
     }
 
+    //Checkout the specified branch
+    pub fn switch_branch(&self, branch_name: &str) -> Result<(), GitError> {
+        self.execute_git(&["checkout", branch_name])
+    }
+
+    //Commit all staged files
     pub fn commit_all(&self) -> Result<(), GitError> {
         self.execute_git(&["commit", "-a"])
     }
@@ -70,10 +76,12 @@ impl Repository {
         I: IntoIterator<Item = S>,
         S: AsRef<OsStr>,
     {
-        Command::new("git")
+        let output = Command::new("git")
             .current_dir(&self.location)
             .args(args)
-            .output()
+            .output();
+
+        output
             .map_err(|_| GitError {
                 message: String::from("unable to execute git process"),
             })
