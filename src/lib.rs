@@ -12,10 +12,28 @@ pub struct GitUrl {
 }
 
 impl GitUrl {
-    //FIXME do validation here
-    pub const fn new(value: String) -> GitUrl {
-        GitUrl { value }
+    //FIXME user FromStr
+    pub fn new(value: String) -> Result<GitUrl, ()> {
+        if is_valid_reference_name(&value) {
+            Ok(GitUrl { value })
+        } else {
+            Err(())
+        }
     }
+}
+
+//FIXME expand this
+fn is_valid_reference_name(name: &str) -> bool {
+
+    //They cannot have ASCII control characters (i.e. bytes whose values are lower than \040, or \177 DEL), space, tilde ~, caret ^, or colon : anywhere. 
+    ! name.starts_with("-") &&
+    ! name.ends_with(".") &&
+    ! name.contains("\\") &&
+    ! name.contains("/.") &&
+    ! name.contains("@{") &&
+    ! name.contains("..") &&
+    name != "@"
+
 }
 
 pub struct Repository {
