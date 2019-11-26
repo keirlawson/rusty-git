@@ -1,16 +1,15 @@
-use std::error::Error;
-use std::fmt::{self, Display, Formatter};
+use thiserror::Error;
 
-//FIXME consider using lib for this
-#[derive(Debug)]
-pub struct GitError {
-    pub message: String,
-}
-
-impl Error for GitError {}
-
-impl Display for GitError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.message)
-    }
+#[derive(Debug, Error)]
+pub enum GitError {
+    #[error("Unable to access current working directory")]
+    WorkingDirectoryInaccessible,
+    #[error("Unable to execute git process")]
+    Execution,
+    #[error("Unable to decode error from git executable")]
+    Undecodable,
+    #[error("git URL is invalid")]
+    InvalidUrl,
+    #[error("git failed with the following message: {0}")]
+    GitError(String)
 }

@@ -23,9 +23,7 @@ impl FromStr for GitUrl {
         if re.is_match(value) {
             Ok(GitUrl { value: String::from(value) })
         } else {
-            Err(GitError {
-                message: String::from("git URL is invalid")
-            })
+            Err(GitError::InvalidUrl)
         }
     }
 }
@@ -63,9 +61,7 @@ impl Repository {
     pub fn clone<P: AsRef<Path>>(url: GitUrl, p: P) -> Result<Repository, GitError> {
         let p = p.as_ref();
 
-        let cwd = env::current_dir().map_err(|_| GitError {
-            message: String::from("Unable to access current working directory"),
-        })?;
+        let cwd = env::current_dir().map_err(|_| GitError::WorkingDirectoryInaccessible)?;
         execute_git(cwd, &["clone", url.value.as_str(), p.to_str().unwrap()]).map(|_| Repository {
             location: PathBuf::from(p),
         })
@@ -101,18 +97,14 @@ where
     let output = Command::new("git").current_dir(p).args(args).output();
 
     output
-        .map_err(|_| GitError {
-            message: String::from("unable to execute git process"),
-        })
+        .map_err(|_| GitError::Execution)
         .and_then(|output| {
             if output.status.success() {
                 Ok(())
+            } else if let Ok(message) = str::from_utf8(&output.stderr) {
+                Err(GitError::GitError(message.to_owned()))
             } else {
-                let message =
-                    str::from_utf8(&output.stderr).unwrap_or_else(|_| "unable to decode error");
-                Err(GitError {
-                    message: String::from(message),
-                })
+                Err(GitError::Undecodable)
             }
         })
 }
