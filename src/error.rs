@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 
+//FIXME consider using lib for this
 #[derive(Debug)]
 pub struct GitError {
     pub message: String,
