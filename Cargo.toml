@@ -3,6 +3,13 @@ name = "rustygit"
 version = "0.1.0"
 authors = ["Keir Lawson <keirlawson@gmail.com>"]
 edition = "2018"
+description = "A simple interface for runnig Git commands"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/keirlawson/rusty-git"
+readme = "README.md"
+categories = ["development-tools"]
+keywords = ["git"]
+
 
 [dependencies]
 regex = "1"
