@@ -18,7 +18,6 @@ impl FromStr for GitUrl {
     fn from_str(value: &str) -> Result<Self, Self::Err> {
 
         //Regex from https://github.com/jonschlinkert/is-git-url
-        //FIXME use lazy static for this?
         let re = Regex::new("(?:git|ssh|https?|git@[-\\w.]+):(//)?(.*?)(\\.git)(/?|\\#[-\\d\\w._]+?)$").unwrap();
         if re.is_match(value) {
             Ok(GitUrl { value: String::from(value) })
