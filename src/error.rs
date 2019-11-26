@@ -11,5 +11,5 @@ pub enum GitError {
     #[error("git URL is invalid")]
     InvalidUrl,
     #[error("git failed with the following message: {0}")]
-    GitError(String)
+    GitError(String),
 }

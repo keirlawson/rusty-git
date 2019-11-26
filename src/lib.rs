@@ -3,29 +3,11 @@ use std::env;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::str::{self, FromStr};
-use regex::Regex;
+use std::str;
+use types::GitUrl;
 
 mod error;
-
-pub struct GitUrl {
-    value: String,
-}
-
-impl FromStr for GitUrl {
-    type Err = GitError;
-
-    fn from_str(value: &str) -> Result<Self, Self::Err> {
-
-        //Regex from https://github.com/jonschlinkert/is-git-url
-        let re = Regex::new("(?:git|ssh|https?|git@[-\\w.]+):(//)?(.*?)(\\.git)(/?|\\#[-\\d\\w._]+?)$").unwrap();
-        if re.is_match(value) {
-            Ok(GitUrl { value: String::from(value) })
-        } else {
-            Err(GitError::InvalidUrl)
-        }
-    }
-}
+mod types;
 
 const INVALID_REFERENCE_CHARS: [char; 5] = [' ', '~', '^', ':', '\\'];
 const INVALID_REFERENCE_START: &str = "-";
@@ -95,15 +77,13 @@ where
 {
     let output = Command::new("git").current_dir(p).args(args).output();
 
-    output
-        .map_err(|_| GitError::Execution)
-        .and_then(|output| {
-            if output.status.success() {
-                Ok(())
-            } else if let Ok(message) = str::from_utf8(&output.stderr) {
-                Err(GitError::GitError(message.to_owned()))
-            } else {
-                Err(GitError::Undecodable)
-            }
-        })
+    output.map_err(|_| GitError::Execution).and_then(|output| {
+        if output.status.success() {
+            Ok(())
+        } else if let Ok(message) = str::from_utf8(&output.stderr) {
+            Err(GitError::GitError(message.to_owned()))
+        } else {
+            Err(GitError::Undecodable)
+        }
+    })
 }
