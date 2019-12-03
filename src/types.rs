@@ -1,6 +1,9 @@
 use super::GitError;
 use regex::Regex;
 use std::str::FromStr;
+use std::result::Result as stdResult;
+
+pub type Result<A> = stdResult<A, GitError>;
 
 pub struct GitUrl {
     pub(crate) value: String,
@@ -9,7 +12,7 @@ pub struct GitUrl {
 impl FromStr for GitUrl {
     type Err = GitError;
 
-    fn from_str(value: &str) -> Result<Self, Self::Err> {
+    fn from_str(value: &str) -> stdResult<Self, Self::Err> {
         //Regex from https://github.com/jonschlinkert/is-git-url
         let re =
             Regex::new("(?:git|ssh|https?|git@[-\\w.]+):(//)?(.*?)(\\.git)(/?|\\#[-\\d\\w._]+?)$")

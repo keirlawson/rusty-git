@@ -4,7 +4,7 @@ use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::str;
-use types::GitUrl;
+use types::{GitUrl, Result};
 
 mod error;
 pub mod types;
@@ -39,7 +39,7 @@ impl Repository {
     }
 
     ///Clone a remote git repository locally
-    pub fn clone<P: AsRef<Path>>(url: GitUrl, p: P) -> Result<Repository, GitError> {
+    pub fn clone<P: AsRef<Path>>(url: GitUrl, p: P) -> Result<Repository> {
         let p = p.as_ref();
 
         let cwd = env::current_dir().map_err(|_| GitError::WorkingDirectoryInaccessible)?;
@@ -49,27 +49,43 @@ impl Repository {
     }
 
     ///Create and checkout a new local branch
-    pub fn create_local_branch(&self, branch_name: &str) -> Result<(), GitError> {
+    pub fn create_local_branch(&self, branch_name: &str) -> Result<()> {
         execute_git(&self.location, &["checkout", "-b", branch_name])
     }
 
     ///Checkout the specified branch
-    pub fn switch_branch(&self, branch_name: &str) -> Result<(), GitError> {
+    pub fn switch_branch(&self, branch_name: &str) -> Result<()> {
         execute_git(&self.location, &["checkout", branch_name])
     }
 
     ///Commit all staged files
-    pub fn commit_all(&self) -> Result<(), GitError> {
+    pub fn commit_all(&self) -> Result<()> {
         execute_git(&self.location, &["commit", "-a"])
     }
 
     ///Push the curent branch to its associated remote
-    pub fn push(&self) -> Result<(), GitError> {
+    pub fn push(&self) -> Result<()> {
         execute_git(&self.location, &["push"])
     }
+
+    ///Add a new remote
+    pub fn add_remote(&self, name: &str, url: &GitUrl) -> Result<()> {
+        execute_git(&self.location, &["remote", "add", name, url.value.as_str()])
+    }
+
+    ///Fetch a remote
+    pub fn fetch_remote(&self, remote: &str) -> Result<()> {
+        execute_git(&self.location, &["fetch", remote])
+    }
+
+    ///Create a new branch from a start point, such as another local or remote branch
+    pub fn create_branch_from_startpoint(&self, branch_name: &str, startpoint: &str) -> Result<()> {
+        execute_git(&self.location, &["checkout", "-b", branch_name, startpoint])
+    }
+
 }
 
-fn execute_git<I, S, P>(p: P, args: I) -> Result<(), GitError>
+fn execute_git<I, S, P>(p: P, args: I) -> Result<()>
 where
     I: IntoIterator<Item = S>,
     S: AsRef<OsStr>,
