@@ -6,9 +6,10 @@ use std::process::Command;
 use std::str;
 use types::{GitUrl, Result, BranchName};
 
-mod error;
+pub mod error;
 pub mod types;
 
+///A local git repository
 pub struct Repository {
     location: PathBuf,
 }
