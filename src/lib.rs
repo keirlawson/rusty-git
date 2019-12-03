@@ -69,7 +69,7 @@ impl Repository {
 
     ///List local branches
     pub fn list_branches(&self) -> Result<Vec<String>> {
-        execute_git_fn(&self.location, &["branch"], |output| {
+        execute_git_fn(&self.location, &["branch", "--format=%(refname:short)"], |output| {
             output.lines().map(|line| line.to_owned()).collect()
         })
     }
@@ -97,7 +97,7 @@ where
 
     output.map_err(|_| GitError::Execution).and_then(|output| {
         if output.status.success() {
-            if let Ok(message) = str::from_utf8(&output.stderr) {
+            if let Ok(message) = str::from_utf8(&output.stdout) {
                 Ok(process(message))
             } else {
                 Err(GitError::Undecodable)
