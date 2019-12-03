@@ -10,6 +10,8 @@ pub enum GitError {
     Undecodable,
     #[error("git URL is invalid")]
     InvalidUrl,
+    #[error("Ref name is invalid")]
+    InvalidRefName,
     #[error("git failed with the following message: {0}")]
     GitError(String),
 }

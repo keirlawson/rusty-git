@@ -12,7 +12,7 @@ pub struct GitUrl {
 impl FromStr for GitUrl {
     type Err = GitError;
 
-    fn from_str(value: &str) -> stdResult<Self, Self::Err> {
+    fn from_str(value: &str) -> Result<Self> {
         //Regex from https://github.com/jonschlinkert/is-git-url
         let re =
             Regex::new("(?:git|ssh|https?|git@[-\\w.]+):(//)?(.*?)(\\.git)(/?|\\#[-\\d\\w._]+?)$")
@@ -25,6 +25,41 @@ impl FromStr for GitUrl {
             Err(GitError::InvalidUrl)
         }
     }
+}
+
+pub struct BranchName {
+    pub(crate) value: String
+}
+
+impl FromStr for BranchName {
+    type Err = GitError;
+    fn from_str(s: &str) -> Result<Self> { 
+        if is_valid_reference_name(s) {
+            Ok(BranchName {
+                value: String::from(s)
+            })
+        } else {
+            Err(GitError::InvalidRefName)
+        }
+    }
+    
+}
+
+const INVALID_REFERENCE_CHARS: [char; 5] = [' ', '~', '^', ':', '\\'];
+const INVALID_REFERENCE_START: &str = "-";
+const INVALID_REFERENCE_END: &str = ".";
+
+//FIXME test
+fn is_valid_reference_name(name: &str) -> bool {
+    !name.starts_with(INVALID_REFERENCE_START)
+        && !name.ends_with(INVALID_REFERENCE_END)
+        && name.chars().all(|c| {
+            !c.is_ascii_control() && INVALID_REFERENCE_CHARS.iter().all(|invalid| &c != invalid)
+        })
+        && !name.contains("/.")
+        && !name.contains("@{")
+        && !name.contains("..")
+        && name != "@"
 }
 
 

@@ -4,26 +4,10 @@ use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::str;
-use types::{GitUrl, Result};
+use types::{GitUrl, Result, BranchName};
 
 mod error;
 pub mod types;
-
-const INVALID_REFERENCE_CHARS: [char; 5] = [' ', '~', '^', ':', '\\'];
-const INVALID_REFERENCE_START: &str = "-";
-const INVALID_REFERENCE_END: &str = ".";
-
-fn is_valid_reference_name(name: &str) -> bool {
-    !name.starts_with(INVALID_REFERENCE_START)
-        && !name.ends_with(INVALID_REFERENCE_END)
-        && name.chars().all(|c| {
-            !c.is_ascii_control() && INVALID_REFERENCE_CHARS.iter().all(|invalid| &c != invalid)
-        })
-        && !name.contains("/.")
-        && !name.contains("@{")
-        && !name.contains("..")
-        && name != "@"
-}
 
 pub struct Repository {
     location: PathBuf,
@@ -49,13 +33,13 @@ impl Repository {
     }
 
     ///Create and checkout a new local branch
-    pub fn create_local_branch(&self, branch_name: &str) -> Result<()> {
-        execute_git(&self.location, &["checkout", "-b", branch_name])
+    pub fn create_local_branch(&self, branch_name: &BranchName) -> Result<()> {
+        execute_git(&self.location, &["checkout", "-b", branch_name.value.as_str()])
     }
 
     ///Checkout the specified branch
-    pub fn switch_branch(&self, branch_name: &str) -> Result<()> {
-        execute_git(&self.location, &["checkout", branch_name])
+    pub fn switch_branch(&self, branch_name: &BranchName) -> Result<()> {
+        execute_git(&self.location, &["checkout", branch_name.value.as_str()])
     }
 
     ///Commit all staged files
