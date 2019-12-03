@@ -67,6 +67,13 @@ impl Repository {
         execute_git(&self.location, &["checkout", "-b", branch_name, startpoint])
     }
 
+    ///List local branches
+    pub fn list_branches(&self) -> Result<Vec<String>> {
+        execute_git_fn(&self.location, &["branch"], |output| {
+            output.lines().map(|line| line.to_owned()).collect()
+        })
+    }
+
 }
 
 fn execute_git<I, S, P>(p: P, args: I) -> Result<()>
@@ -75,11 +82,26 @@ where
     S: AsRef<OsStr>,
     P: AsRef<Path>,
 {
+    execute_git_fn(p, args, |_| ())
+}
+
+
+fn execute_git_fn<I, S, P, F, R>(p: P, args: I, process: F) -> Result<R>
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<OsStr>,
+    P: AsRef<Path>,
+    F: Fn(&str) -> R
+{
     let output = Command::new("git").current_dir(p).args(args).output();
 
     output.map_err(|_| GitError::Execution).and_then(|output| {
         if output.status.success() {
-            Ok(())
+            if let Ok(message) = str::from_utf8(&output.stderr) {
+                Ok(process(message))
+            } else {
+                Err(GitError::Undecodable)
+            }
         } else if let Ok(message) = str::from_utf8(&output.stderr) {
             Err(GitError::GitError(message.to_owned()))
         } else {
