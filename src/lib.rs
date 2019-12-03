@@ -7,7 +7,7 @@ use std::str;
 use types::GitUrl;
 
 mod error;
-mod types;
+pub mod types;
 
 const INVALID_REFERENCE_CHARS: [char; 5] = [' ', '~', '^', ':', '\\'];
 const INVALID_REFERENCE_START: &str = "-";
