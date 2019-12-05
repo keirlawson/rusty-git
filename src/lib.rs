@@ -44,8 +44,8 @@ impl Repository {
     }
 
     ///Commit all staged files
-    pub fn commit_all(&self) -> Result<()> {
-        execute_git(&self.location, &["commit", "-a"])
+    pub fn commit_all(&self, message: &str) -> Result<()> {
+        execute_git(&self.location, &["commit", "-am", message])
     }
 
     ///Push the curent branch to its associated remote

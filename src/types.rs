@@ -65,7 +65,6 @@ fn is_valid_reference_name(name: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
 
     #[test]
