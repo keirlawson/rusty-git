@@ -33,6 +33,16 @@ impl Repository {
         })
     }
 
+    ///Initialise a given folder as a git repository
+    pub fn init<P: AsRef<Path>>(p: P) -> Result<Repository> {
+        let p = p.as_ref();
+        execute_git(&p, &["init"])?;
+        Ok(Repository {
+            location: PathBuf::from(p),
+        })
+    }
+
+
     ///Create and checkout a new local branch
     pub fn create_local_branch(&self, branch_name: &BranchName) -> Result<()> {
         execute_git(&self.location, &["checkout", "-b", branch_name.value.as_str()])
@@ -41,6 +51,14 @@ impl Repository {
     ///Checkout the specified branch
     pub fn switch_branch(&self, branch_name: &BranchName) -> Result<()> {
         execute_git(&self.location, &["checkout", branch_name.value.as_str()])
+    }
+
+    ///Add file contents to the index
+    pub fn add(&self, pathspecs: Vec<&str>) -> Result<()> 
+    {
+        let mut args = pathspecs.clone();
+        args.insert(0, "add");
+        execute_git(&self.location, args)
     }
 
     ///Commit all staged files
@@ -104,6 +122,7 @@ where
                 Err(GitError::Undecodable)
             }
         } else if let Ok(message) = str::from_utf8(&output.stderr) {
+            dbg!(&output);
             Err(GitError::GitError(message.to_owned()))
         } else {
             Err(GitError::Undecodable)
