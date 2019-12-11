@@ -5,6 +5,7 @@ use std::result::Result as stdResult;
 
 pub type Result<A> = stdResult<A, GitError>;
 
+#[derive(Debug)]
 pub struct GitUrl {
     pub(crate) value: String,
 }
@@ -27,6 +28,7 @@ impl FromStr for GitUrl {
     }
 }
 
+#[derive(Debug)]
 pub struct BranchName {
     pub(crate) value: String
 }
