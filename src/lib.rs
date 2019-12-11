@@ -42,7 +42,6 @@ impl Repository {
         })
     }
 
-
     ///Create and checkout a new local branch
     pub fn create_local_branch(&self, branch_name: &BranchName) -> Result<()> {
         execute_git(&self.location, &["checkout", "-b", branch_name.value.as_str()])
@@ -69,6 +68,11 @@ impl Repository {
     ///Push the curent branch to its associated remote
     pub fn push(&self) -> Result<()> {
         execute_git(&self.location, &["push"])
+    }
+
+    ///Push the curent branch to its associated remote, specifying the upstream branch
+    pub fn push_to_upstream(&self, upstream: &str, upstream_branch: &BranchName) -> Result<()> {
+        execute_git(&self.location, &["push", "-u", upstream, upstream_branch.value.as_str()])
     }
 
     ///Add a new remote
