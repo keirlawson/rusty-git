@@ -1,7 +1,7 @@
 use super::GitError;
 use regex::Regex;
 use std::str::FromStr;
-use std::result::Result as stdResult;
+use std::{fmt, fmt::{Display, Formatter}, result::Result as stdResult};
 
 pub type Result<A> = stdResult<A, GitError>;
 
@@ -28,6 +28,12 @@ impl FromStr for GitUrl {
     }
 }
 
+impl Display for GitUrl {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.value)
+    }
+}
+
 #[derive(Debug)]
 pub struct BranchName {
     pub(crate) value: String
@@ -45,6 +51,12 @@ impl FromStr for BranchName {
         }
     }
     
+}
+
+impl Display for BranchName {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.value)
+    }
 }
 
 const INVALID_REFERENCE_CHARS: [char; 5] = [' ', '~', '^', ':', '\\'];
