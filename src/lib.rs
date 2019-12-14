@@ -86,8 +86,8 @@ impl Repository {
     }
 
     ///Create a new branch from a start point, such as another local or remote branch
-    pub fn create_branch_from_startpoint(&self, branch_name: &str, startpoint: &str) -> Result<()> {
-        execute_git(&self.location, &["checkout", "-b", branch_name, startpoint])
+    pub fn create_branch_from_startpoint(&self, branch_name: &BranchName, startpoint: &str) -> Result<()> {
+        execute_git(&self.location, &["checkout", "-b", branch_name.to_string().as_str(), startpoint])
     }
 
     ///List local branches
