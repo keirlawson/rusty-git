@@ -2,6 +2,8 @@ use super::GitError;
 use regex::Regex;
 use std::str::FromStr;
 use std::{fmt, fmt::{Display, Formatter}, result::Result as stdResult};
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Deserializer, de};
 
 pub type Result<A> = stdResult<A, GitError>;
 
@@ -56,6 +58,17 @@ impl FromStr for BranchName {
 impl Display for BranchName {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.value)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> Deserialize<'de> for BranchName {
+    fn deserialize<D>(deserializer: D) -> stdResult<BranchName, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        BranchName::from_str(&s).map_err(de::Error::custom)
     }
 }
 
