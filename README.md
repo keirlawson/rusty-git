@@ -34,5 +34,5 @@ Git2-rs is a mature and featureful Git library and unlike this library does not 
 
 This library does however have a few advantages over git2-rs:
 * Pure Rust rather than bindings to a C++ library, making for easier cross-compilation.
-* Works git git's SSH agent on Windows (libssh, which is used by git2-rs is unable to at present, making using SSH not possible on Windows)
+* Works with git's SSH agent on Windows (libssh, which is used by git2-rs is unable to at present, making using SSH not possible on Windows)
 * Provides a higher level API requiring less knowledge of Git internals
