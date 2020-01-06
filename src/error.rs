@@ -12,6 +12,9 @@ pub enum GitError {
     InvalidUrl,
     #[error("Ref name is invalid")]
     InvalidRefName,
-    #[error("git failed with the following message: {0}")]
-    GitError(String),
+    #[error("git failed with the following stdout: {stdout}")]
+    GitError{
+        stdout: String,
+        stderr: String
+    },
 }

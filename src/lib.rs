@@ -125,11 +125,20 @@ where
             } else {
                 Err(GitError::Undecodable)
             }
-        } else if let Ok(message) = str::from_utf8(&output.stderr) {
-            dbg!(&output);
-            Err(GitError::GitError(message.to_owned()))
         } else {
-            Err(GitError::Undecodable)
+            if let Ok(stdout) = str::from_utf8(&output.stdout) {
+                if let Ok(stderr) = str::from_utf8(&output.stderr) {
+                    Err(GitError::GitError{
+                        stdout: stdout.to_owned(),
+                        stderr: stderr.to_owned()
+                    })
+                } else {
+                    Err(GitError::Undecodable)
+                }
+            } else {
+                Err(GitError::Undecodable)
+            }
+
         }
     })
 }
