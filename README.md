@@ -28,7 +28,7 @@ for branch in branches {
 }
 ```
 
-## Comaprrison with [git2-rs](https://github.com/rust-lang/git2-rs)
+## Comparison with [git2-rs](https://github.com/rust-lang/git2-rs)
 
 Git2-rs is a mature and featureful Git library and unlike this library does not require that `git` be on the users $PATH.
 
