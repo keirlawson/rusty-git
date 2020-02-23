@@ -76,7 +76,6 @@ const INVALID_REFERENCE_CHARS: [char; 5] = [' ', '~', '^', ':', '\\'];
 const INVALID_REFERENCE_START: &str = "-";
 const INVALID_REFERENCE_END: &str = ".";
 
-//FIXME test
 fn is_valid_reference_name(name: &str) -> bool {
     !name.starts_with(INVALID_REFERENCE_START)
         && !name.ends_with(INVALID_REFERENCE_END)
@@ -160,6 +159,30 @@ mod tests {
 
         for url in invalid_urls.iter() {  
             assert!(GitUrl::from_str(url).is_err())
+        }
+    }
+
+    #[test]
+    fn test_valid_reference_names() {
+        let valid_reference = "avalidreference";
+
+        assert!(is_valid_reference_name(valid_reference))
+    }
+
+    #[test]
+    fn test_invalid_reference_names() {
+        let invalid_references = vec!(
+            "double..dot",
+            "inavlid^character",
+            "invalid~character",
+            "invalid:character",
+            "invalid\\character",
+            "@",
+            "inavlid@{sequence"
+        );
+
+        for reference_name in invalid_references.iter() {
+            assert!(!is_valid_reference_name(reference_name))
         }
     }
 }
