@@ -62,7 +62,7 @@ impl Repository {
         execute_git(&self.location, args)
     }
 
-    ///Add file contents to the index
+    ///Remove file contents from the index
     pub fn remove(&self, pathspecs: Vec<&str>, force: bool) -> Result<()> {
         let mut args = pathspecs.clone();
         args.insert(0, "rm");
@@ -124,6 +124,31 @@ impl Repository {
             |output| output.lines().map(|line| line.to_owned()).collect(),
         )
     }
+
+    ///List files added to staging area
+    pub fn list_added(&self) -> Result<Vec<String>> {
+        git_status(&self, "A")
+    }
+
+    ///List all modified files
+    pub fn list_modified(&self) -> Result<Vec<String>> {
+        git_status(&self, " M")
+    }
+
+    ///List all untracked files
+    pub fn list_untracked(&self) -> Result<Vec<String>> {
+        git_status(&self, "??")
+    }
+}
+
+fn git_status(repo: &Repository, prefix: &str) -> Result<Vec<String>> {
+    execute_git_fn(&repo.location, &["status", "-s"], |output| {
+        output
+            .lines()
+            .filter(|line| line.starts_with(&prefix))
+            .map(|line| line[3..].to_owned())
+            .collect()
+    })
 }
 
 fn execute_git<I, S, P>(p: P, args: I) -> Result<()>
