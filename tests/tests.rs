@@ -87,7 +87,6 @@ fn test_commit_all() {
 }
 
 #[test]
-#[should_panic]
 fn test_remove_uncommitted_single() {
     let dir = tempfile::tempdir().unwrap();
 
@@ -96,13 +95,9 @@ fn test_remove_uncommitted_single() {
     File::create(dir.as_ref().join("somefile")).unwrap();
 
     repo.add(vec!["somefile"]).unwrap();
-    repo.remove(vec!["somefile"], false).unwrap();
+    let result = repo.remove(vec!["somefile"], false);
 
-    Command::new("git")
-        .current_dir(&dir)
-        .args(&["ls-files"])
-        .output()
-        .unwrap();
+    assert!(result.is_err());
 }
 
 #[test]
@@ -173,7 +168,6 @@ fn test_remove_commited_multiple() {
 }
 
 #[test]
-#[should_panic]
 fn test_remove_uncommited_multiple() {
     let dir = tempfile::tempdir().unwrap();
 
@@ -183,13 +177,9 @@ fn test_remove_uncommited_multiple() {
     File::create(dir.as_ref().join("anotherfile")).unwrap();
 
     repo.add(vec!["somefile", "anotherfile"]).unwrap();
-    repo.remove(vec!["somefile", "anotherfile"], false).unwrap();
+    let result = repo.remove(vec!["somefile", "anotherfile"], false);
 
-    Command::new("git")
-        .current_dir(&dir)
-        .args(&["ls-files"])
-        .output()
-        .unwrap();
+    assert!(result.is_err());
 }
 
 #[test]
