@@ -1,5 +1,6 @@
 use rustygit::Repository;
 use std::fs::File;
+use std::io::Write;
 use std::process::Command;
 use std::str;
 use tempfile;
@@ -213,4 +214,56 @@ fn test_remove_uncommited_multiple_force() {
     assert!(!str::from_utf8(&output.stdout)
         .unwrap()
         .contains("anotherfile"));
+}
+
+#[test]
+fn test_list_added() {
+    let dir = tempfile::tempdir().unwrap();
+
+    let repo = Repository::init(&dir).unwrap();
+
+    File::create(dir.as_ref().join("somefile")).unwrap();
+    File::create(dir.as_ref().join("anotherfile")).unwrap();
+
+    repo.add(vec!["somefile", "anotherfile"]).unwrap();
+
+    let output = repo.list_added().unwrap();
+
+    assert!(output.contains(&String::from("somefile")));
+    assert!(output.contains(&String::from("anotherfile")));
+}
+
+#[test]
+fn test_list_untracked() {
+    let dir = tempfile::tempdir().unwrap();
+
+    let repo = Repository::init(&dir).unwrap();
+
+    File::create(dir.as_ref().join("somefile")).unwrap();
+    File::create(dir.as_ref().join("anotherfile")).unwrap();
+
+    let output = repo.list_untracked().unwrap();
+
+    assert!(output.contains(&String::from("somefile")));
+    assert!(output.contains(&String::from("anotherfile")));
+}
+
+#[test]
+fn test_list_modified() {
+    let dir = tempfile::tempdir().unwrap();
+
+    let repo = Repository::init(&dir).unwrap();
+
+    let mut file1 = File::create(dir.as_ref().join("somefile")).unwrap();
+    let mut file2 = File::create(dir.as_ref().join("anotherfile")).unwrap();
+    repo.add(vec!["somefile", "anotherfile"]).unwrap();
+    repo.commit_all("some msg").unwrap();
+
+    file1.write(b"Hello there!").unwrap();
+    file2.write(b"General Kenobi").unwrap();
+
+    let output = repo.list_modified().unwrap();
+
+    assert!(output.contains(&String::from("somefile")));
+    assert!(output.contains(&String::from("anotherfile")));
 }
