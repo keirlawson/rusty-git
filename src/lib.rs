@@ -4,7 +4,7 @@ use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::str;
-use types::{GitUrl, Result, BranchName};
+use types::{BranchName, GitUrl, Result};
 
 pub mod error;
 pub mod types;
@@ -44,7 +44,10 @@ impl Repository {
 
     ///Create and checkout a new local branch
     pub fn create_local_branch(&self, branch_name: &BranchName) -> Result<()> {
-        execute_git(&self.location, &["checkout", "-b", branch_name.value.as_str()])
+        execute_git(
+            &self.location,
+            &["checkout", "-b", branch_name.value.as_str()],
+        )
     }
 
     ///Checkout the specified branch
@@ -53,13 +56,21 @@ impl Repository {
     }
 
     ///Add file contents to the index
-    pub fn add(&self, pathspecs: Vec<&str>) -> Result<()> 
-    {
+    pub fn add(&self, pathspecs: Vec<&str>) -> Result<()> {
         let mut args = pathspecs.clone();
         args.insert(0, "add");
         execute_git(&self.location, args)
     }
 
+    ///Remove file contents from the index
+    pub fn remove(&self, pathspecs: Vec<&str>, force: bool) -> Result<()> {
+        let mut args = pathspecs.clone();
+        args.insert(0, "rm");
+        if force {
+            args.push("-f");
+        }
+        execute_git(&self.location, args)
+    }
     ///Commit all staged files
     pub fn commit_all(&self, message: &str) -> Result<()> {
         execute_git(&self.location, &["commit", "-am", message])
@@ -72,7 +83,10 @@ impl Repository {
 
     ///Push the curent branch to its associated remote, specifying the upstream branch
     pub fn push_to_upstream(&self, upstream: &str, upstream_branch: &BranchName) -> Result<()> {
-        execute_git(&self.location, &["push", "-u", upstream, upstream_branch.value.as_str()])
+        execute_git(
+            &self.location,
+            &["push", "-u", upstream, upstream_branch.value.as_str()],
+        )
     }
 
     ///Add a new remote
@@ -86,17 +100,55 @@ impl Repository {
     }
 
     ///Create a new branch from a start point, such as another local or remote branch
-    pub fn create_branch_from_startpoint(&self, branch_name: &BranchName, startpoint: &str) -> Result<()> {
-        execute_git(&self.location, &["checkout", "-b", branch_name.to_string().as_str(), startpoint])
+    pub fn create_branch_from_startpoint(
+        &self,
+        branch_name: &BranchName,
+        startpoint: &str,
+    ) -> Result<()> {
+        execute_git(
+            &self.location,
+            &[
+                "checkout",
+                "-b",
+                branch_name.to_string().as_str(),
+                startpoint,
+            ],
+        )
     }
 
     ///List local branches
     pub fn list_branches(&self) -> Result<Vec<String>> {
-        execute_git_fn(&self.location, &["branch", "--format=%(refname:short)"], |output| {
-            output.lines().map(|line| line.to_owned()).collect()
-        })
+        execute_git_fn(
+            &self.location,
+            &["branch", "--format=%(refname:short)"],
+            |output| output.lines().map(|line| line.to_owned()).collect(),
+        )
     }
 
+    ///List files added to staging area
+    pub fn list_added(&self) -> Result<Vec<String>> {
+        git_status(&self, "A")
+    }
+
+    ///List all modified files
+    pub fn list_modified(&self) -> Result<Vec<String>> {
+        git_status(&self, " M")
+    }
+
+    ///List all untracked files
+    pub fn list_untracked(&self) -> Result<Vec<String>> {
+        git_status(&self, "??")
+    }
+}
+
+fn git_status(repo: &Repository, prefix: &str) -> Result<Vec<String>> {
+    execute_git_fn(&repo.location, &["status", "-s"], |output| {
+        output
+            .lines()
+            .filter(|line| line.starts_with(&prefix))
+            .map(|line| line[3..].to_owned())
+            .collect()
+    })
 }
 
 fn execute_git<I, S, P>(p: P, args: I) -> Result<()>
@@ -108,13 +160,12 @@ where
     execute_git_fn(p, args, |_| ())
 }
 
-
 fn execute_git_fn<I, S, P, F, R>(p: P, args: I, process: F) -> Result<R>
 where
     I: IntoIterator<Item = S>,
     S: AsRef<OsStr>,
     P: AsRef<Path>,
-    F: Fn(&str) -> R
+    F: Fn(&str) -> R,
 {
     let output = Command::new("git").current_dir(p).args(args).output();
 
@@ -128,9 +179,9 @@ where
         } else {
             if let Ok(stdout) = str::from_utf8(&output.stdout) {
                 if let Ok(stderr) = str::from_utf8(&output.stderr) {
-                    Err(GitError::GitError{
+                    Err(GitError::GitError {
                         stdout: stdout.to_owned(),
-                        stderr: stderr.to_owned()
+                        stderr: stderr.to_owned(),
                     })
                 } else {
                     Err(GitError::Undecodable)
@@ -138,7 +189,6 @@ where
             } else {
                 Err(GitError::Undecodable)
             }
-
         }
     })
 }
