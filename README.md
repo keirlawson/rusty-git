@@ -13,7 +13,7 @@ Add the following to your `cargo.toml`:
 
 ```toml
 [dependencies]
-rustygit = "0.3"
+rustygit = "0.4"
 ```
 
 ```rust
