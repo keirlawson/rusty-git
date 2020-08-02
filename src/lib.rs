@@ -139,6 +139,13 @@ impl Repository {
     pub fn list_untracked(&self) -> Result<Vec<String>> {
         git_status(&self, "??")
     }
+
+    ///List tracked files
+    pub fn list_tracked(&self) -> Result<Vec<String>> {
+        execute_git_fn(&self.location, &["ls-files"], |output| {
+            output.lines().map(|line| line.to_owned()).collect()
+        })
+    }
 }
 
 fn git_status(repo: &Repository, prefix: &str) -> Result<Vec<String>> {
