@@ -257,3 +257,38 @@ fn test_list_modified() {
     assert!(output.contains(&String::from("somefile")));
     assert!(output.contains(&String::from("anotherfile")));
 }
+
+#[test]
+fn test_list_tracked() {
+    let dir = tempfile::tempdir().unwrap();
+
+    let repo = Repository::init(&dir).unwrap();
+
+    File::create(dir.as_ref().join("somefile")).unwrap();
+    File::create(dir.as_ref().join("anotherfile")).unwrap();
+
+    let output = repo.list_tracked().unwrap();
+
+    assert!(!output.contains(&String::from("somefile")));
+    assert!(!output.contains(&String::from("anotherfile")));
+
+    repo.add(vec!["somefile"]).unwrap();
+
+    let output = repo.list_tracked().unwrap();
+    assert!(output.contains(&String::from("somefile")));
+    assert!(!output.contains(&String::from("anotherfile")));
+
+    repo.add(vec!["anotherfile"]).unwrap();
+
+    let output = repo.list_tracked().unwrap();
+
+    assert!(output.contains(&String::from("somefile")));
+    assert!(output.contains(&String::from("anotherfile")));
+
+    repo.commit_all("some_msg").unwrap();
+
+    let output = repo.list_tracked().unwrap();
+
+    assert!(output.contains(&String::from("somefile")));
+    assert!(output.contains(&String::from("anotherfile")));
+}
