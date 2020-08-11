@@ -146,6 +146,16 @@ impl Repository {
             output.lines().map(|line| line.to_owned()).collect()
         })
     }
+
+    /// Obtains commit hash of the current `HEAD`.
+    pub fn get_hash(&self, short: bool) -> Result<String> {
+        let args: &[_] = if short {
+            &["rev-parse", "--short", "HEAD"]
+        } else {
+            &["rev-parse", "HEAD"]
+        };
+        execute_git_fn(&self.location, args, str::to_owned)
+    }
 }
 
 fn git_status(repo: &Repository, prefix: &str) -> Result<Vec<String>> {
