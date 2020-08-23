@@ -154,7 +154,7 @@ impl Repository {
         } else {
             &["rev-parse", "HEAD"]
         };
-        execute_git_fn(&self.location, args, str::to_owned)
+        execute_git_fn(&self.location, args, |output| output.trim().to_owned())
     }
 }
 

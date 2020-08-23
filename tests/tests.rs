@@ -1,4 +1,5 @@
 use rustygit::Repository;
+use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::process::Command;
@@ -291,4 +292,29 @@ fn test_list_tracked() {
 
     assert!(output.contains(&String::from("somefile")));
     assert!(output.contains(&String::from("anotherfile")));
+}
+
+#[test]
+fn test_get_hash() {
+    let dir = tempfile::tempdir().unwrap();
+
+    let repo = Repository::init(&dir).unwrap();
+
+    fs::write(&dir.as_ref().join("somefile"), "Some content").unwrap();
+    repo.add(vec!["somefile"]).unwrap();
+    repo.commit_all("Commit 1").unwrap();
+
+    let hash1_short = repo.get_hash(true).unwrap();
+    let hash1_long = repo.get_hash(false).unwrap();
+    assert!(hash1_long.starts_with(&hash1_short),);
+
+    fs::write(&dir.as_ref().join("anotherfile"), "Some content").unwrap();
+    repo.add(vec!["anotherfile"]).unwrap();
+    repo.commit_all("Commit 2").unwrap();
+
+    let hash2_short = repo.get_hash(true).unwrap();
+    let hash2_long = repo.get_hash(false).unwrap();
+    assert!(hash2_long.starts_with(&hash2_short));
+
+    assert_ne!(hash1_short, hash2_short);
 }
