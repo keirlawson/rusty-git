@@ -1,9 +1,9 @@
-use rustygit::Repository;
+use rustygit::{Repository, types::BranchName, error::GitError};
 use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::process::Command;
-use std::str;
+use std::str::{self, FromStr};
 use tempfile;
 
 #[test]
@@ -317,4 +317,28 @@ fn test_get_hash() {
     assert!(hash2_long.starts_with(&hash2_short));
 
     assert_ne!(hash1_short, hash2_short);
+}
+
+#[test]
+fn test_get_error() {
+    let dir = tempfile::tempdir().unwrap();
+
+    let repo = Repository::init(&dir).unwrap();
+
+    fs::write(&dir.as_ref().join("somefile"), "Some content").unwrap();
+    repo.add(vec!["somefile"]).unwrap();
+    repo.commit_all("Commit 1").unwrap();
+
+    let result = repo.switch_branch(&BranchName::from_str("no_branch").unwrap());
+    if let Err(e) = result {
+        match e {
+            GitError::GitError { stdout, stderr } => {
+                assert!(stdout.is_empty());
+                assert_eq!(stderr, "error: pathspec 'no_branch' did not match any file(s) known to git\n");
+            }
+            _ => assert!(false, "Expected GitError, got {:?}", e),
+        }
+    } else {
+        assert!(false, "Expected failing checkout of a unknown branch");
+    }
 }
