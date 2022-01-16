@@ -1,6 +1,6 @@
 [package]
 name = "rustygit"
-version = "0.4.2"
+version = "0.4.3"
 authors = ["Keir Lawson <keirlawson@gmail.com>"]
 edition = "2018"
 description = "A simple interface for runnig Git commands"
