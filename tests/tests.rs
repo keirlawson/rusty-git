@@ -342,3 +342,71 @@ fn test_get_error() {
         assert!(false, "Expected failing checkout of a unknown branch");
     }
 }
+
+#[test]
+fn test_cmd() {
+    let dir = tempfile::tempdir().unwrap();
+
+    let repo = Repository::init(&dir).unwrap();
+
+    fs::write(&dir.as_ref().join("somefile"), "Some content").unwrap();
+    repo.add(vec!["somefile"]).unwrap();
+    repo.commit_all("Commit 1").unwrap();
+
+    // no untracked, modified or added files should be here now
+    assert_eq!(0, repo.list_added().unwrap().len());
+    assert_eq!(0, repo.list_modified().unwrap().len());
+    assert_eq!(0, repo.list_untracked().unwrap().len());
+
+    // now make changes
+    fs::write(&dir.as_ref().join("somefile"), "Some changed content").unwrap();
+    fs::write(&dir.as_ref().join("somefile2"), "Some changed content").unwrap();
+
+    // we should have one modified and one untracked file
+    assert_eq!(1, repo.list_modified().unwrap().len());
+    assert_eq!(1, repo.list_untracked().unwrap().len());
+
+    // now use utils command to reset the repo
+    repo.cmd(["reset", "--hard"]).unwrap();
+
+    // we should have one untracked file left
+    assert_eq!(0, repo.list_modified().unwrap().len());
+    assert_eq!(1, repo.list_untracked().unwrap().len());
+
+    // now use utils command to clean the repo
+    repo.cmd(["clean", "-f"]).unwrap();
+
+    // no untracked, modified or added files should be here now
+    assert_eq!(0, repo.list_added().unwrap().len());
+    assert_eq!(0, repo.list_modified().unwrap().len());
+    assert_eq!(0, repo.list_untracked().unwrap().len());
+}
+
+#[test]
+fn test_cmd_out() {
+    let dir = tempfile::tempdir().unwrap();
+
+    let repo = Repository::init(&dir).unwrap();
+
+    fs::write(&dir.as_ref().join("somefile"), "Some content").unwrap();
+    repo.add(vec!["somefile"]).unwrap();
+    repo.commit_all("Commit 1").unwrap();
+
+    // no untracked, modified or added files should be here now
+    assert_eq!(0, repo.list_added().unwrap().len());
+    assert_eq!(0, repo.list_modified().unwrap().len());
+    assert_eq!(0, repo.list_untracked().unwrap().len());
+
+    // now add an untracked file
+    fs::write(&dir.as_ref().join("somefile2"), "Some changed content").unwrap();
+
+    // we should have one untracked file
+    assert_eq!(1, repo.list_untracked().unwrap().len());
+
+    // now use utils_fun command to see which one
+    let val = repo.cmd_out(["clean", "-n"]).unwrap();
+
+    // check whats in there
+    assert_eq!(1, val.len());
+    assert_eq!("Would remove somefile2".to_string(), val[0]);
+}

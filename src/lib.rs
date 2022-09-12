@@ -156,6 +156,26 @@ impl Repository {
         };
         execute_git_fn(&self.location, args, |output| output.trim().to_owned())
     }
+
+    /// Execute user defined command
+    pub fn cmd<I, S>(&self, args: I) -> Result<()>
+    where
+        I: IntoIterator<Item = S>,
+        S: AsRef<OsStr>,
+    {
+        execute_git(&self.location, args)
+    }
+
+    /// Execute user defined command and return its output
+    pub fn cmd_out<I, S>(&self, args: I) -> Result<Vec<String>>
+    where
+        I: IntoIterator<Item = S>,
+        S: AsRef<OsStr>,
+    {
+        execute_git_fn(&self.location, args, |output| {
+            output.lines().map(|line| line.to_owned()).collect()
+        })
+    }
 }
 
 fn git_status(repo: &Repository, prefix: &str) -> Result<Vec<String>> {
