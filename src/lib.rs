@@ -158,7 +158,7 @@ impl Repository {
     }
 
     /// Execute user defined command
-    pub fn utils<I, S>(&self, args: I) -> Result<()>
+    pub fn cmd<I, S>(&self, args: I) -> Result<()>
     where
         I: IntoIterator<Item = S>,
         S: AsRef<OsStr>,
@@ -166,8 +166,8 @@ impl Repository {
         execute_git(&self.location, args)
     }
 
-    /// Execute user defined command with fun
-    pub fn utils_fun<I, S>(&self, args: I) -> Result<Vec<String>>
+    /// Execute user defined command and return its output
+    pub fn cmd_out<I, S>(&self, args: I) -> Result<Vec<String>>
     where
         I: IntoIterator<Item = S>,
         S: AsRef<OsStr>,

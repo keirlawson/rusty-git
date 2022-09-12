@@ -344,7 +344,7 @@ fn test_get_error() {
 }
 
 #[test]
-fn test_utils() {
+fn test_cmd() {
     let dir = tempfile::tempdir().unwrap();
 
     let repo = Repository::init(&dir).unwrap();
@@ -367,14 +367,14 @@ fn test_utils() {
     assert_eq!(1, repo.list_untracked().unwrap().len());
 
     // now use utils command to reset the repo
-    repo.utils(["reset", "--hard"]).unwrap();
+    repo.cmd(["reset", "--hard"]).unwrap();
 
     // we should have one untracked file left
     assert_eq!(0, repo.list_modified().unwrap().len());
     assert_eq!(1, repo.list_untracked().unwrap().len());
 
     // now use utils command to clean the repo
-    repo.utils(["clean", "-f"]).unwrap();
+    repo.cmd(["clean", "-f"]).unwrap();
 
     // no untracked, modified or added files should be here now
     assert_eq!(0, repo.list_added().unwrap().len());
@@ -383,7 +383,7 @@ fn test_utils() {
 }
 
 #[test]
-fn test_utils_fun() {
+fn test_cmd_out() {
     let dir = tempfile::tempdir().unwrap();
 
     let repo = Repository::init(&dir).unwrap();
@@ -404,7 +404,7 @@ fn test_utils_fun() {
     assert_eq!(1, repo.list_untracked().unwrap().len());
 
     // now use utils_fun command to see which one
-    let val = repo.utils_fun(["clean", "-n"]).unwrap();
+    let val = repo.cmd_out(["clean", "-n"]).unwrap();
 
     // check whats in there
     assert_eq!(1, val.len());
