@@ -433,3 +433,12 @@ fn test_show_remote_uri() {
     let remote_uri = repo.show_remote_uri("origin").unwrap();
     assert_eq!("git@github.com:random/repo.git", remote_uri);
 }
+
+#[test]
+fn test_no_remote_uri() {
+    let dir = tempfile::tempdir().unwrap();
+
+    let repo = Repository::init(&dir).unwrap();
+    let remote_uri = repo.list_remotes();
+    assert_eq!(true, remote_uri.is_err());
+}
