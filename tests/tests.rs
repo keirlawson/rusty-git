@@ -1,3 +1,4 @@
+use rustygit::types::GitUrl;
 use rustygit::{Repository, types::BranchName, error::GitError};
 use std::fs;
 use std::fs::File;
@@ -409,4 +410,26 @@ fn test_cmd_out() {
     // check whats in there
     assert_eq!(1, val.len());
     assert_eq!("Would remove somefile2".to_string(), val[0]);
+}
+
+#[test]
+fn test_show_remotes() {
+    let dir = tempfile::tempdir().unwrap();
+
+    let repo = Repository::init(&dir).unwrap();
+    let _ = repo.add_remote("origin", &GitUrl::from_str("git@github.com:random/repo.git").unwrap());
+    let _ = repo.add_remote("copy", &GitUrl::from_str("git@github.com:another_random/repo.git").unwrap());
+    let remotes = repo.list_remotes().unwrap();
+    assert_eq!(2, remotes.len());
+    assert_eq!(vec!["copy", "origin"], remotes);
+}
+
+#[test]
+fn test_show_remote_uri() {
+    let dir = tempfile::tempdir().unwrap();
+
+    let repo = Repository::init(&dir).unwrap();
+    let _ = repo.add_remote("origin", &GitUrl::from_str("git@github.com:random/repo.git").unwrap());
+    let remote_uri = repo.show_remote_uri("origin").unwrap();
+    assert_eq!("git@github.com:random/repo.git", remote_uri);
 }

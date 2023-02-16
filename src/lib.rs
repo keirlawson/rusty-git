@@ -147,6 +147,20 @@ impl Repository {
         })
     }
 
+    ///List all the remote URI for name
+    pub fn show_remote_uri(&self, remote_name: &str) -> Result<String> {
+        execute_git_fn(&self.location, &["config", "--get", format!("remote.{}.url", remote_name).as_str()], |output| {
+            output.trim().to_owned()
+        })
+    }
+
+    ///List all the remote URI for name
+    pub fn list_remotes(&self) -> Result<Vec<String>> {
+        execute_git_fn(&self.location, &["remote", "show"], |output| {
+            output.lines().map(|line| line.to_owned()).collect()
+        })
+    }
+
     /// Obtains commit hash of the current `HEAD`.
     pub fn get_hash(&self, short: bool) -> Result<String> {
         let args: &[_] = if short {
