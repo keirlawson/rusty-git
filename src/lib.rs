@@ -121,7 +121,7 @@ impl Repository {
         execute_git_fn(
             &self.location,
             &["branch", "--format=%(refname:short)"],
-            |output| output.lines().map(|line| line.to_owned()).collect(),
+            |output| Ok(output.lines().map(|line| line.to_owned()).collect()),
         )
     }
 
@@ -143,21 +143,25 @@ impl Repository {
     ///List tracked files
     pub fn list_tracked(&self) -> Result<Vec<String>> {
         execute_git_fn(&self.location, &["ls-files"], |output| {
-            output.lines().map(|line| line.to_owned()).collect()
+            Ok(output.lines().map(|line| line.to_owned()).collect())
         })
     }
 
     ///List all the remote URI for name
     pub fn show_remote_uri(&self, remote_name: &str) -> Result<String> {
         execute_git_fn(&self.location, &["config", "--get", format!("remote.{}.url", remote_name).as_str()], |output| {
-            output.trim().to_owned()
+            Ok(output.trim().to_owned())
         })
     }
 
     ///List all the remote URI for name
     pub fn list_remotes(&self) -> Result<Vec<String>> {
         execute_git_fn(&self.location, &["remote", "show"], |output| {
-            output.lines().map(|line| line.to_owned()).collect()
+            if output.trim().is_empty() {
+                Err(GitError::NoRemoteRepositorySet)
+            } else {
+                Ok(output.lines().map(|line| line.to_owned()).collect())
+            }
         })
     }
 
@@ -168,7 +172,7 @@ impl Repository {
         } else {
             &["rev-parse", "HEAD"]
         };
-        execute_git_fn(&self.location, args, |output| output.trim().to_owned())
+        execute_git_fn(&self.location, args, |output| Ok(output.trim().to_owned()))
     }
 
     /// Execute user defined command
@@ -187,18 +191,18 @@ impl Repository {
         S: AsRef<OsStr>,
     {
         execute_git_fn(&self.location, args, |output| {
-            output.lines().map(|line| line.to_owned()).collect()
+            Ok(output.lines().map(|line| line.to_owned()).collect())
         })
     }
 }
 
 fn git_status(repo: &Repository, prefix: &str) -> Result<Vec<String>> {
     execute_git_fn(&repo.location, &["status", "-s"], |output| {
-        output
+        Ok(output
             .lines()
             .filter(|line| line.starts_with(&prefix))
             .map(|line| line[3..].to_owned())
-            .collect()
+            .collect())
     })
 }
 
@@ -208,7 +212,7 @@ where
     S: AsRef<OsStr>,
     P: AsRef<Path>,
 {
-    execute_git_fn(p, args, |_| ())
+    execute_git_fn(p, args, |_| Ok(()))
 }
 
 fn execute_git_fn<I, S, P, F, R>(p: P, args: I, process: F) -> Result<R>
@@ -216,14 +220,14 @@ where
     I: IntoIterator<Item = S>,
     S: AsRef<OsStr>,
     P: AsRef<Path>,
-    F: Fn(&str) -> R,
+    F: Fn(&str) -> Result<R>,
 {
     let output = Command::new("git").current_dir(p).args(args).output();
 
     output.map_err(|_| GitError::Execution).and_then(|output| {
         if output.status.success() {
             if let Ok(message) = str::from_utf8(&output.stdout) {
-                Ok(process(message))
+                process(message)
             } else {
                 Err(GitError::Undecodable)
             }
