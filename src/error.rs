@@ -17,4 +17,6 @@ pub enum GitError {
         stdout: String,
         stderr: String
     },
+    #[error("No Git Repository is available")]
+    NoRemoteRepositorySet
 }
